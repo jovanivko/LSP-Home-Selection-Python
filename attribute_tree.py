@@ -135,6 +135,21 @@ class TreePlotter:
         self.plot_node(root_node, x=0, y=0, width=6, height=1)
         plt.show()
 
+def print_tree(node, prefix=""):
+    """
+    Recursively prints the tree structure in the console.
+    """
+    # Print the current node
+    print(f"{prefix}├── [{node.name}]")
+
+    # Print all the children of the current node
+    for i, child in enumerate(node.children):
+        # If it's the last child, print └ instead of ├
+        if i == len(node.children) - 1:
+            print_tree(child, prefix + "    ")
+        else:
+            print_tree(child, prefix + "│   ")
+
 # Define some elementary criteria
 discrete_criterion = DiscreteCriterion(
     name="Suitability of Neighborhood",
@@ -167,8 +182,6 @@ location_quality = root.add_child(aggregator2, weight=0.7, name="Overall Locatio
 location_quality.add_child(discrete_criterion, weight=0.6, name="Neighborhood Suitability")
 location_quality.add_child(continuous_criterion, weight=0.4, name="Transport Proximity")
 
-
-
 data = {
     "Suitability of Neighborhood": [80],  # Discrete criterion
     "Road Surface Quality": ["good"],     # Qualitative criterion
@@ -181,3 +194,7 @@ inputs = pd.DataFrame(data)
 # Evaluate the tree
 result = root.evaluate(inputs)
 print(f"Evaluation result: {result}")
+
+plotter = TreePlotter()
+print_tree(root)
+plotter.display_tree(root)

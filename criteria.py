@@ -155,7 +155,7 @@ class ContinuousCriterion(ElementaryCriterion):
             raise ValueError(f"Input value {input_value} is out of the acceptable range [{x_values[0]}, {x_values[-1]}].")
 
         # Interpolate the suitability score between the points
-        np.interp(input_value, x_values, y_values)/100
+        print(np.interp(input_value, x_values, y_values)/100)
         return np.interp(input_value, x_values, y_values)/100
 
     def display_scale(self):
