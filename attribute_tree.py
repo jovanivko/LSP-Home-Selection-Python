@@ -150,51 +150,51 @@ def print_tree(node, prefix=""):
         else:
             print_tree(child, prefix + "│   ")
 
-# Define some elementary criteria
-discrete_criterion = DiscreteCriterion(
-    name="Suitability of Neighborhood",
-    description="",
-    value_score_mapping={0: 0, 50: 50, 80: 100}
-)
-
-qualitative_criterion = QualitativeCriterion(
-    name="Road Surface Quality",
-    description="",
-    value_score_mapping={"poor": 10, "average": 50, "good": 90}
-)
-
-continuous_criterion = ContinuousCriterion(
-    name="Distance from public transport",
-    description="",
-    points=[(0, 100), (500, 80), (1000, 50), (1500, 0)]
-)
-
-# Define aggregators
-aggregator1 = HighHardPartialDisjunction()
-aggregator2 = ConjunctivePartialAbsorption(10, 20)
-
-# Create the root node and add children (Discrete, Qualitative, and Continuous)
-root = AggregationTreeNode(node_id="1", name="Home Suitability", element=aggregator1)
-
-root.add_child(qualitative_criterion, weight=0.3, name="Road Surface Quality")
-location_quality = root.add_child(aggregator2, weight=0.7, name="Overall Location Quality")
-# Add criteria (leaves) to the respective nodes
-location_quality.add_child(discrete_criterion, weight=0.6, name="Neighborhood Suitability")
-location_quality.add_child(continuous_criterion, weight=0.4, name="Transport Proximity")
-
-data = {
-    "Suitability of Neighborhood": [80],  # Discrete criterion
-    "Road Surface Quality": ["good"],     # Qualitative criterion
-    "Distance from public transport": [600]  # Continuous criterion
-}
-
-# Convert dictionary to DataFrame
-inputs = pd.DataFrame(data)
-
-# Evaluate the tree
-result = root.evaluate(inputs)
-print(f"Evaluation result: {result}")
-
-plotter = TreePlotter()
-print_tree(root)
-plotter.display_tree(root)
+# # Define some elementary criteria
+# discrete_criterion = DiscreteCriterion(
+#     name="Suitability of Neighborhood",
+#     description="",
+#     value_score_mapping={0: 0, 50: 50, 80: 100}
+# )
+#
+# qualitative_criterion = QualitativeCriterion(
+#     name="Road Surface Quality",
+#     description="",
+#     value_score_mapping={"poor": 10, "average": 50, "good": 90}
+# )
+#
+# continuous_criterion = ContinuousCriterion(
+#     name="Distance from public transport",
+#     description="",
+#     points=[(0, 100), (500, 80), (1000, 50), (1500, 0)]
+# )
+#
+# # Define aggregators
+# aggregator1 = HighHardPartialDisjunction()
+# aggregator2 = ConjunctivePartialAbsorption(10, 20)
+#
+# # Create the root node and add children (Discrete, Qualitative, and Continuous)
+# root = AggregationTreeNode(node_id="1", name="Home Suitability", element=aggregator1)
+#
+# root.add_child(qualitative_criterion, weight=0.3, name="Road Surface Quality")
+# location_quality = root.add_child(aggregator2, weight=0.7, name="Overall Location Quality")
+# # Add criteria (leaves) to the respective nodes
+# location_quality.add_child(discrete_criterion, weight=0.6, name="Neighborhood Suitability")
+# location_quality.add_child(continuous_criterion, weight=0.4, name="Transport Proximity")
+#
+# data = {
+#     "Suitability of Neighborhood": [80],  # Discrete criterion
+#     "Road Surface Quality": ["good"],     # Qualitative criterion
+#     "Distance from public transport": [600]  # Continuous criterion
+# }
+#
+# # Convert dictionary to DataFrame
+# inputs = pd.DataFrame(data)
+#
+# # Evaluate the tree
+# result = root.evaluate(inputs)
+# print(f"Evaluation result: {result}")
+#
+# plotter = TreePlotter()
+# print_tree(root)
+# plotter.display_tree(root)

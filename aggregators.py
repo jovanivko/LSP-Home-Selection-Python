@@ -203,22 +203,22 @@ class DisjunctivePartialAbsorption(PartialAbsorption):
         return 1 - 1/(part1+part2)
 
 
-# Example Usage
-values = [0.8, 0.6, 0.9, 0.7]
-weights = [0.25, 0.25, 0.25, 0.25]
 
-# Full conjunction
-full_conjunction = FullConjunction()
-print("Full Conjunction Result:", full_conjunction.evaluate(values, weights))
-
-# Hard partial conjunction (1st)
-hard_partial_conjunction1 = HighHardPartialConjunction()
-print("Hard Partial Conjunction 1 Result:", hard_partial_conjunction1.evaluate(values, weights))
-
-# Soft partial disjunction (3rd)
-soft_partial_disjunction3 = HighSoftPartialDisjunction()
-print("Soft Partial Disjunction 3 Result:", soft_partial_disjunction3.evaluate(values, weights))
-
-# Full disjunction
-full_disjunction = FullDisjunction()
-print("Full Disjunction Result:", full_disjunction.evaluate(values, weights))
+# values = [0.8, 0.6, 0.9, 0.7]
+# weights = [0.25, 0.25, 0.25, 0.25]
+#
+# # Full conjunction
+# full_conjunction = FullConjunction()
+# print("Full Conjunction Result:", full_conjunction.evaluate(values, weights))
+#
+# # Hard partial conjunction (1st)
+# hard_partial_conjunction1 = HighHardPartialConjunction()
+# print("Hard Partial Conjunction 1 Result:", hard_partial_conjunction1.evaluate(values, weights))
+#
+# # Soft partial disjunction (3rd)
+# soft_partial_disjunction3 = HighSoftPartialDisjunction()
+# print("Soft Partial Disjunction 3 Result:", soft_partial_disjunction3.evaluate(values, weights))
+#
+# # Full disjunction
+# full_disjunction = FullDisjunction()
+# print("Full Disjunction Result:", full_disjunction.evaluate(values, weights))

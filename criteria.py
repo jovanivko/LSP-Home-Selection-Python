@@ -19,10 +19,12 @@ class ElementaryCriterion(ABC):
         """
         Displays the description and the suitability scale.
         """
-        wrapped_description = self._wrap_text(self.description)
-        print(f"{self.id} {self.name}"
-              f"Description:\n{wrapped_description}")
+        print("\n" + "-" * 80 + "\n")
+        wrapped_description = self._wrap_text(f"Опис: {self.description}")
+        print(f"{self.id} {self.name}\n"
+              f"{wrapped_description}")
         self.display_scale()
+        print("\n" + "-" * 80 + "\n")
 
     def display_scale(self):
         """
@@ -56,6 +58,8 @@ class DiscreteCriterion(ElementaryCriterion):
     def __init__(self, name, description, value_score_mapping):
         super().__init__(name, description)
         self.value_score_mapping = value_score_mapping
+        for value, score in self.value_score_mapping.items():
+            self.value_score_mapping[value] = score * 100
 
     def evaluate(self, input_value):
         if input_value in self.value_score_mapping:
@@ -66,8 +70,8 @@ class DiscreteCriterion(ElementaryCriterion):
 
     def display_scale(self):
         data = {
-            'Value': list(self.value_score_mapping.keys()),
-            'Suitability [%]': list(self.value_score_mapping.values())
+            'Вредност': list(self.value_score_mapping.keys()),
+            'Погодност [%]': list(self.value_score_mapping.values())
         }
         df = pd.DataFrame(data)
         display(df)
@@ -76,19 +80,28 @@ class DiscreteCriterion(ElementaryCriterion):
         """
         Plots an elementary criterion with suitability on the Y-axis and the criterion on the X-axis.
         """
-        x_values = self.value_score_mapping.keys()
-        y_values = self.value_score_mapping.values()
+        x_values = list(self.value_score_mapping.keys())
+        y_values = list(self.value_score_mapping.values())
+
         plt.figure(figsize=(5, 5))
         plt.plot(x_values, y_values, marker='o', color='black')
         plt.fill_between(x_values, y_values, color='lightgray', alpha=0.5)
 
-        plt.title("Suitability vs. "+self.name)
+        plt.title("Погодност vs. " + self.name)
         plt.xlabel(self.name)
-        plt.ylabel("Suitability [%]")
-        plt.xticks(np.arange(min(x_values), max(x_values) + 1, (max(x_values) - min(x_values)) // 5))
+        plt.ylabel("Погодност [%]")
+
+        if min(x_values) != max(x_values):
+            # Normal case where x_values differ
+            plt.xticks(np.arange(min(x_values), max(x_values) + 1, (max(x_values) - min(x_values)) / 5))
+        else:
+            # Handle case where all x_values are the same (use a single tick)
+            plt.xticks([min(x_values)])
+
         plt.yticks(np.arange(0, 101, 20))
         plt.grid(True)
-        plt.show()
+        # plt.show()
+        plt.savefig(self.name + "_plot.png")
 
 class QualitativeCriterion(ElementaryCriterion):
     """
@@ -101,12 +114,14 @@ class QualitativeCriterion(ElementaryCriterion):
         """
         super().__init__(name, description)
         self.value_score_mapping = value_score_mapping
+        for value, score in self.value_score_mapping.items():
+            self.value_score_mapping[value] = score * 100
 
     def display_scale(self):
 
         data = {
-            'Value': list(self.value_score_mapping.keys()),
-            'Suitability [%]': list(self.value_score_mapping.values())
+            'Вредност': list(self.value_score_mapping.keys()),
+            'Погодност [%]': list(self.value_score_mapping.values())
         }
         df = pd.DataFrame(data)
         display(df)
@@ -121,31 +136,40 @@ class QualitativeCriterion(ElementaryCriterion):
     def plot_elementary_criterion(self):
         """
         Plots an elementary criterion with suitability on the Y-axis and the criterion on the X-axis.
+        Handles qualitative (text-based) criteria by labeling the x-axis with strings.
         """
-        x_values = self.value_score_mapping.keys()
-        y_values = self.value_score_mapping.values()
-        plt.figure(figsize=(5, 5))
-        plt.plot(x_values, y_values, marker='o', color='black')
-        plt.fill_between(x_values, y_values, color='lightgray', alpha=0.5)
+        x_values = list(self.value_score_mapping.keys())
+        y_values = list(self.value_score_mapping.values())
 
-        plt.title("Suitability vs. "+self.name)
+        plt.figure(figsize=(5, 5))
+        plt.plot(range(len(x_values)), y_values, marker='o', color='black')
+        plt.fill_between(range(len(x_values)), y_values, color='lightgray', alpha=0.5)
+
+        plt.title("Погодност vs. " + self.name)
         plt.xlabel(self.name)
-        plt.ylabel("Suitability [%]")
-        plt.xticks(np.arange(min(x_values), max(x_values) + 1, (max(x_values) - min(x_values)) // 5))
+        plt.ylabel("Погодност [%]")
+
+        # Set string labels for qualitative x-values
+        plt.xticks(ticks=range(len(x_values)), labels=x_values)
+
         plt.yticks(np.arange(0, 101, 20))
         plt.grid(True)
-        plt.show()
+        # plt.show()
+        plt.savefig(self.name + "_plot.png")
+
 
 class ContinuousCriterion(ElementaryCriterion):
     """
     Continuous criterion, where the user specifies points, and the suitability is interpolated between them.
     """
-    def __init__(self, name, description, points):
+    def __init__(self, name, description, points, left=None, right=None):
         """
         :param points: A list of tuples (x, y), where x is the value and y is the score.
         """
         super().__init__(name, description)
         self.points = points
+        for i in range(len(self.points)):
+            self.points[i] = (self.points[i][0],self.points[i][1] * 100)
 
     def evaluate(self, input_value):
         x_values = [point[0] for point in self.points]
@@ -160,8 +184,8 @@ class ContinuousCriterion(ElementaryCriterion):
 
     def display_scale(self):
         data = {
-            'Value': [point[0] for point in self.points],
-            'Suitability [%]': [point[1] for point in self.points]
+            'Вредност': [point[0] for point in self.points],
+            'Погодност [%]': [point[1] for point in self.points]
         }
         df = pd.DataFrame(data)
         display(df)
@@ -176,94 +200,30 @@ class ContinuousCriterion(ElementaryCriterion):
         plt.plot(x_values, y_values, marker='o', color='black')
         plt.fill_between(x_values, y_values, color='lightgray', alpha=0.5)
 
-        plt.title("Suitability vs. "+self.name)
+        plt.title("Погодност vs. "+self.name)
         plt.xlabel(self.name)
-        plt.ylabel("Suitability [%]")
-        plt.xticks(np.arange(min(x_values), max(x_values) + 1, (max(x_values) - min(x_values)) // 5))
+        plt.ylabel("Погодност [%]")
+        plt.xticks(np.arange(min(x_values), max(x_values) + 1, (max(x_values) - min(x_values)) / 5))
         plt.yticks(np.arange(0, 101, 20))
         plt.grid(True)
-        plt.show()
+        # plt.show()
+        plt.savefig(self.name+"_plot.png")
 
 # Automatically determine the type of criterion based on the input data
-def create_criterion(description, values, suitability):
-    if all(isinstance(v, str) for v in values):
-        # Qualitative criterion if all values are strings
-        value_score_mapping = dict(zip(values, suitability))
-        return QualitativeCriterion("",description, value_score_mapping)
-    elif isinstance(values, list) and isinstance(suitability, list):
-        if len(values) == len(suitability):
-            # Discrete or Continuous criterion based on numeric values
-            points = list(zip(values, suitability))
-            return ContinuousCriterion("", description, points)
+def create_criterion(name, description, values=None, suitabilities=None, points=None):
+    if points:
+        # Continuous criterion if points are provided
+        return ContinuousCriterion(name, description, points)
+    elif values and suitabilities:
+        if all(isinstance(v, str) for v in values):
+            # Qualitative criterion if all values are strings
+            value_score_mapping = dict(zip(values, suitabilities))
+            return QualitativeCriterion(name, description, value_score_mapping)
+        elif all(isinstance(v, (int, float)) for v in values):
+            # Discrete criterion if all values are numbers
+            value_score_mapping = dict(zip(values, suitabilities))
+            return DiscreteCriterion(name, description, value_score_mapping)
         else:
-            raise ValueError("Values and suitability lists must be of the same length.")
+            raise ValueError("Values must be either all strings (qualitative) or all numbers (discrete).")
     else:
-        raise ValueError("Invalid criterion data.")
-
-criteria = [
-    {
-        "id": 1111,
-        "description": "The distance from train stations is measured in meters. All distances below 400 meters are considered excellent and acceptable. Similarly, all distances of 1000 meters or more are considered unacceptable.",
-        "values": [400, 1000],
-        "suitability": [100, 0]
-    },
-    {
-        "id": 1112,
-        "description": "The distance from bus stations is measured in meters. Bus stations are expected to be closer than train stations. All distances below 50 meters are considered excellent.",
-        "values": [50, 700],
-        "suitability": [100, 0]
-    },
-    {
-        "id": 112,
-        "description": "The distance from local food stores is measured in meters. The criterion assumes walking distances are acceptable. All distances below 100 meters are excellent.",
-        "values": [100, 400, 600],
-        "suitability": [100, 50, 0]
-    },
-    {
-        "id": 121,
-        "description": "The distance from parks is measured in meters. Parks are highly desirable for this kind of stakeholder. The ideal location would be immediately next to a park.",
-        "values": [0, 3500],
-        "suitability": [100, 0]
-    },
-    {
-        "id": 122,
-        "description": "The average distance from local restaurants (measured in meters). Living too close to a restaurant brings noise and pollution. Proximity to restaurants is highly desirable within walking distance.",
-        "values": [0, 500, 900],
-        "suitability": [40, 100, 0]
-    },
-    {
-        "id": 123,
-        "description": "The distance from the public library is measured in meters. The closer the library, the more desirable for frequent visits.",
-        "values": [0, 3000],
-        "suitability": [100, 0]
-    },
-    {
-        "id": 123,
-        "description": "The distance from train stations is measured in meters. All distances below 400 meters are considered excellent and acceptable. Similarly, all distances of 1000 meters or more are considered unacceptable.",
-        "values": [400, 1000],
-        "suitability": [100, 0]
-    },
-    {
-        "id": 123,
-        "description": "The quality of road surface leading to the house. Descriptions can include 'poor', 'average', and 'good'.",
-        "values": ["poor", "average", "good"],
-        "suitability": [20, 60, 90]
-    },
-    {
-        "id": 123,
-        "description": "The distance from local food stores is measured in meters. The criterion assumes walking distances are acceptable. All distances below 100 meters are excellent.",
-        "values": [100, 400, 600],
-        "suitability": [100, 50, 0]
-    }
-]
-
-for criterion in criteria:
-    description = criterion['description']
-    values = criterion['values']
-    suitability = criterion['suitability']
-
-    # Automatically create the appropriate criterion type
-    criterion_instance = create_criterion(description, values, suitability)
-    criterion_instance.display_info()
-
-    print("\n" + "-" * 80 + "\n")
+        raise ValueError("Invalid criterion data or missing required fields.")
