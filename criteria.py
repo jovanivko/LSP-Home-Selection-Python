@@ -10,9 +10,13 @@ class ElementaryCriterion(ABC):
     Abstract base class for an elementary criterion.
     Discrete, Qualitative, and Continuous criteria will extend this class.
     """
+    counter = 0
+
     def __init__(self, name, description):
         self.name = name
         self.id = ""
+        ElementaryCriterion.counter += 1
+        self.cnt = ElementaryCriterion.counter
         self.description = description
 
     def display_info(self):
@@ -51,20 +55,35 @@ class ElementaryCriterion(ABC):
         """
         pass
 
+    @abstractmethod
+    def plot_elementary_criterion(self):
+        """
+           Овај апстрактни метод исцртава скалу подобности елементарног критеријума.
+        """
+        pass
+
+
 class DiscreteCriterion(ElementaryCriterion):
     """
     Discrete criterion, where the user specifies a mapping of exact values to scores.
     """
-    def __init__(self, name, description, value_score_mapping):
+
+    def __init__(self, name, description, value_score_mapping, left=None, right=None):
         super().__init__(name, description)
         self.value_score_mapping = value_score_mapping
         for value, score in self.value_score_mapping.items():
             self.value_score_mapping[value] = score * 100
+        self.left = left
+        self.right = right
 
     def evaluate(self, input_value):
+        keys = list(self.value_score_mapping.keys())
         if input_value in self.value_score_mapping:
-            print(self.value_score_mapping[input_value]/100)
-            return self.value_score_mapping[input_value]/100
+            return self.value_score_mapping[input_value] / 100
+        elif input_value > np.max(keys) and self.right is not None:
+            return self.right
+        elif input_value < np.min(keys) and self.left is not None:
+            return self.left
         else:
             raise ValueError(f"Input value {input_value} is not defined in discrete values.")
 
@@ -101,7 +120,8 @@ class DiscreteCriterion(ElementaryCriterion):
         plt.yticks(np.arange(0, 101, 20))
         plt.grid(True)
         # plt.show()
-        plt.savefig(self.name + "_plot.png")
+        plt.savefig(f"criterion/criterion_{self.cnt}_plot.png")
+
 
 class QualitativeCriterion(ElementaryCriterion):
     """
@@ -128,8 +148,7 @@ class QualitativeCriterion(ElementaryCriterion):
 
     def evaluate(self, input_value):
         if input_value in self.value_score_mapping:
-            print(self.value_score_mapping[input_value] / 100)
-            return self.value_score_mapping[input_value]/100
+            return self.value_score_mapping[input_value] / 100
         else:
             raise ValueError(f"Input description {input_value} is not defined in qualitative values.")
 
@@ -155,32 +174,47 @@ class QualitativeCriterion(ElementaryCriterion):
         plt.yticks(np.arange(0, 101, 20))
         plt.grid(True)
         # plt.show()
-        plt.savefig(self.name + "_plot.png")
+        plt.savefig(f"criterion/criterion_{self.cnt}_plot.png")
 
 
 class ContinuousCriterion(ElementaryCriterion):
     """
     Continuous criterion, where the user specifies points, and the suitability is interpolated between them.
     """
+
     def __init__(self, name, description, points, left=None, right=None):
         """
         :param points: A list of tuples (x, y), where x is the value and y is the score.
         """
         super().__init__(name, description)
         self.points = points
+
         for i in range(len(self.points)):
-            self.points[i] = (self.points[i][0],self.points[i][1] * 100)
+            self.points[i] = (self.points[i][0], self.points[i][1] * 100)
+        if left is None:
+            self.left = points[0][1]
+        else:
+            self.left = left * 100
+        if right is None:
+            self.right = points[-1][1]
+        else:
+            self.right = right * 100
 
     def evaluate(self, input_value):
         x_values = [point[0] for point in self.points]
         y_values = [point[1] for point in self.points]
-
-        if input_value < x_values[0] or input_value > x_values[-1]:
-            raise ValueError(f"Input value {input_value} is out of the acceptable range [{x_values[0]}, {x_values[-1]}].")
-
+        if x_values[0] < x_values[-1]:
+            if x_values[0] > input_value:
+                return self.left / 100
+            if x_values[-1] < input_value:
+                return self.right / 100
+        else:
+            if x_values[0] < input_value:
+                return self.left / 100
+            if x_values[-1] > input_value:
+                return self.right / 100
         # Interpolate the suitability score between the points
-        print(np.interp(input_value, x_values, y_values)/100)
-        return np.interp(input_value, x_values, y_values)/100
+        return np.interp(input_value, x_values, y_values, self.left, self.right) / 100
 
     def display_scale(self):
         data = {
@@ -200,14 +234,15 @@ class ContinuousCriterion(ElementaryCriterion):
         plt.plot(x_values, y_values, marker='o', color='black')
         plt.fill_between(x_values, y_values, color='lightgray', alpha=0.5)
 
-        plt.title("Погодност vs. "+self.name)
+        plt.title("Погодност vs. " + self.name)
         plt.xlabel(self.name)
         plt.ylabel("Погодност [%]")
         plt.xticks(np.arange(min(x_values), max(x_values) + 1, (max(x_values) - min(x_values)) / 5))
         plt.yticks(np.arange(0, 101, 20))
         plt.grid(True)
         # plt.show()
-        plt.savefig(self.name+"_plot.png")
+        plt.savefig(f"criterion/criterion_{self.cnt}_plot.png")
+
 
 # Automatically determine the type of criterion based on the input data
 def create_criterion(name, description, values=None, suitabilities=None, points=None):

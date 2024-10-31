@@ -13,6 +13,7 @@ class Aggregator:
     def evaluate(self, values, weigths):
         pass
 
+
 class UGCDAggregator(Aggregator):
     def __init__(self, name, fixed_andness):
         """
@@ -45,10 +46,11 @@ class UGCDAggregator(Aggregator):
             This function handles the nested expression based on the value of alpha for the exponent.
             """
             beta = 0.5 - alpha
-            return (0.25 + beta * (1.65811 + beta * (2.15388 + beta * (8.2844 + 6.16764 * beta)))) / (
-                        alpha * (1 - alpha))
+            result = (0.25 + beta * (1.65811 + beta * (2.15388 + beta * (8.2844 + 6.16764 * beta)))) / (
+                    alpha * (1 - alpha))
+            return np.clip(result, 1e-8, None)
 
-        R = 0.7201  # Fixed value for
+        R = 0.7201  # Fixed value
 
         if alpha == 1:
             return np.min(values)  # Full conjunction case
@@ -109,13 +111,16 @@ class MediumSoftPartialConjunction(UGCDAggregator):
     def __init__(self):
         super().__init__("SC", 9 / 14)
 
+
 class LowSoftPartialConjunction(UGCDAggregator):
     def __init__(self):
         super().__init__("SC-", 8 / 14)
 
+
 class Neutrality(UGCDAggregator):
     def __init__(self):
         super().__init__("A", 0.5)
+
 
 class LowSoftPartialDisjunction(UGCDAggregator):
     def __init__(self):
@@ -156,6 +161,7 @@ class PartialAbsorption(Aggregator, ABC):
     def __init__(self, name):
         super().__init__(name)
 
+
 class ConjunctivePartialAbsorption(PartialAbsorption):
     def __init__(self, max_reward, max_penalty):
         """
@@ -167,17 +173,22 @@ class ConjunctivePartialAbsorption(PartialAbsorption):
         super().__init__("CPA")
         self.R = max_reward
         self.P = max_penalty
-        r = self.R/0.5
-        p = self.P/0.5
+        r = self.R / 0.5
+        p = self.P / 0.5
         self.W1 = 2 * r * (1 - p) / (p + r)
         self.W2 = (p - r) / (p - r + 2 * p * r)
 
     def evaluate(self, values, weights):
         x = values[0]
         y = values[1]
+        if x == 0.0:
+            return 0.0
+
         part1 = (1 - self.W2) / (self.W1 * x + (1 - self.W1) * y)
         part2 = self.W2 / x
+
         return 1 / (part1 + part2)
+
 
 class DisjunctivePartialAbsorption(PartialAbsorption):
     def __init__(self, max_reward, max_penalty):
@@ -198,11 +209,12 @@ class DisjunctivePartialAbsorption(PartialAbsorption):
     def evaluate(self, values, weights):
         x = values[0]
         y = values[1]
+        if x == 1.0:
+            return 1.0
         part1 = (1 - self.W2) / (1 - self.W1 * x - (1 - self.W1) * y)
         part2 = self.W2 / (1 - x)
-        return 1 - 1/(part1+part2)
 
-
+        return 1 - 1 / (part1 + part2)
 
 # values = [0.8, 0.6, 0.9, 0.7]
 # weights = [0.25, 0.25, 0.25, 0.25]

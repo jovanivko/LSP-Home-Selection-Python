@@ -2,11 +2,9 @@ from aggregators import *
 from attribute_tree import *
 from criteria import create_criterion, ContinuousCriterion, QualitativeCriterion, DiscreteCriterion
 
-# ContinuousCriterion, QualitativeCriterion, and DiscreteCriterion class instances
-
 criteria_objects = []
 
-# Example criterion: Удаљеност од радног места оца (continuous criterion)
+# Удаљеност од радног места оца (continuous criterion)
 description_father_work = "Погодност дома у односу на удаљеност од радног места оца."
 criterion_father_work = ContinuousCriterion(
     name="Удаљеност од радног места оца",
@@ -15,7 +13,7 @@ criterion_father_work = ContinuousCriterion(
 )
 criteria_objects.append(criterion_father_work)
 
-# Example criterion: Удаљеност од радног места мајке (continuous criterion)
+# Удаљеност од радног места мајке (continuous criterion)
 description_mother_work = "Погодност дома у односу на удаљеност од радног места мајке."
 values_mother_work = [1, 2, 4, 5]
 suitabilities_mother_work = [1.0, 0.7, 0.4, 0.0]
@@ -26,7 +24,7 @@ criterion_mother_work = ContinuousCriterion(
 )
 criteria_objects.append(criterion_mother_work)
 
-# Example criterion: Просечна удаљеност од школа (continuous criterion)
+# Просечна удаљеност од школа (continuous criterion)
 description_school_distance = "Мери просечну удаљеност од школе за оба детета."
 points_school_distance = [(0, 1.0), (500, 0.6), (2000, 0.0)]
 criterion_school_distance = ContinuousCriterion(
@@ -36,7 +34,7 @@ criterion_school_distance = ContinuousCriterion(
 )
 criteria_objects.append(criterion_school_distance)
 
-# Example criterion: Приступ јавном превозу (discrete criterion)
+# Приступ јавном превозу (discrete criterion)
 description_public_transport = "Мери броj различитих врста градског превоза у кругу од 500 метара од jединице."
 values_public_transport = [3, 2, 1, 0]
 suitabilities_public_transport = [1.0, 0.6, 0.3, 0.0]
@@ -47,7 +45,7 @@ criterion_public_transport = DiscreteCriterion(
 )
 criteria_objects.append(criterion_public_transport)
 
-# Example criterion: Доступност трговине (continuous criterion)
+# Доступност трговине (continuous criterion)
 description_shopping_access = "Удаљеност наjближе добро опремљене радње у коjоj се могу пронаћи скоро све потрепштине."
 points_shopping_access = [(50, 1.0), (100, 0.7), (200, 0.4), (500, 0.0)]
 criterion_shopping_access = ContinuousCriterion(
@@ -57,7 +55,7 @@ criterion_shopping_access = ContinuousCriterion(
 )
 criteria_objects.append(criterion_shopping_access)
 
-# Example criterion: Доступност садржаjа за децу (discrete criterion)
+# Доступност садржаjа за децу (discrete criterion)
 description_child_facilities = "Присутност паркова за играње, излетишта, базена, позоришта за децу и биоскопа."
 values_child_facilities = [5, 4, 3, 2, 1, 0]
 suitabilities_child_facilities = [1.0, 0.8, 0.6, 0.4, 0.2, 0.0]
@@ -68,7 +66,7 @@ criterion_child_facilities = DiscreteCriterion(
 )
 criteria_objects.append(criterion_child_facilities)
 
-# Example criterion: Доступност здравствених установа (discrete criterion)
+# Доступност здравствених установа (discrete criterion)
 description_health_access = "Присутност здравствених установа у кругу од два километара."
 values_health_access = [4, 3, 2, 1, 0]
 suitabilities_health_access = [1.0, 0.75, 0.5, 0.25, 0.0]
@@ -79,41 +77,46 @@ criterion_health_access = DiscreteCriterion(
 )
 criteria_objects.append(criterion_health_access)
 
-# Example criterion: Квадратура унутрашњег простора (continuous criterion)
+# Квадратура унутрашњег простора (continuous criterion)
 description_square_footage = "Погодност дома у односу на квадратуру унутрашњег простора."
-points_square_footage = [(100, 1.0), (75, 0.7), (50, 0.5), (50, 0.0)]
+points_square_footage = [(100, 1.0), (75, 0.7), (50, 0.5)]
 criterion_square_footage = ContinuousCriterion(
     name="Квадратура унутрашњег простора",
     description=description_square_footage,
-    points=points_square_footage
+    points=points_square_footage,
+    right=0.0
 )
 criteria_objects.append(criterion_square_footage)
 
 # Continuing the creation of criterion objects for the remaining criteria
 
-# 2.2.1 Број спаваћих соба (discrete criterion)
+# 2.2.1 Број спаваћих соба
 description_bedrooms = "Погодност дома у односу на број спаваћих соба."
 values_bedrooms = [3, 2, 1]
 suitabilities_bedrooms = [1.0, 0.5, 0.0]
 criterion_bedrooms = DiscreteCriterion(
     name="Број спаваћих соба",
     description=description_bedrooms,
-    value_score_mapping=dict(zip(values_bedrooms, suitabilities_bedrooms))
+    value_score_mapping=dict(zip(values_bedrooms, suitabilities_bedrooms)),
+    left=0,
+    right=1,
 )
 criteria_objects.append(criterion_bedrooms)
 
-# 2.2.2 Број купатила (discrete criterion)
+# 2.2.2 Број купатила
 description_bathrooms = "Погодност дома у односу на број купатила."
 values_bathrooms = [2, 1]
 suitabilities_bathrooms = [1.0, 0.5]
 criterion_bathrooms = DiscreteCriterion(
     name="Број купатила",
     description=description_bathrooms,
-    value_score_mapping=dict(zip(values_bathrooms, suitabilities_bathrooms))
+    value_score_mapping=dict(zip([2, 1], [1.0, 0.5])),
+    left=1,
+    right=0,
 )
 criteria_objects.append(criterion_bathrooms)
 
-# 2.2.3 Кухиња (qualitative criterion)
+# 2.2.3 Кухиња
 description_kitchen = "Квалитет кухиње: 3 - Пространа и модерна, 2 - Просечне величине и опреме, 1 - Мала или застарела."
 values_kitchen = [3, 2, 1]
 suitabilities_kitchen = [1.0, 0.7, 0.4]
@@ -135,7 +138,7 @@ criterion_dining_room = QualitativeCriterion(
 )
 criteria_objects.append(criterion_dining_room)
 
-# 2.2.5 Дневна соба (discrete criterion)
+# 2.2.5 Дневна соба
 description_living_room = "Квалитет дневне собе: 4 - Пространа са добром осветљеношћу, 0 - Нема посебан дневни боравак."
 values_living_room = [4, 3, 2, 1, 0]
 suitabilities_living_room = [1.0, 0.8, 0.65, 0.5, 0.0]
@@ -146,7 +149,7 @@ criterion_living_room = DiscreteCriterion(
 )
 criteria_objects.append(criterion_living_room)
 
-# 2.2.6 Распоред соба (qualitative criterion)
+# 2.2.6 Распоред соба
 description_room_layout = "Оптималан распоред соба: 'одличан' - Практичан распоред, 'лош' - Незадовољавајући распоред."
 values_room_layout = ['одличан', 'добар', 'лош']
 suitabilities_room_layout = [1.0, 0.7, 0.3]
@@ -157,7 +160,7 @@ criterion_room_layout = QualitativeCriterion(
 )
 criteria_objects.append(criterion_room_layout)
 
-# 2.3.1 Старост стамбене jединице (continuous criterion)
+# 2.3.1 Старост стамбене jединице
 description_house_age = "Старост стамбене јединице."
 points_house_age = [(5, 1.0), (10, 0.7), (20, 0.5), (40, 0.2), (40, 0.0)]
 criterion_house_age = ContinuousCriterion(
@@ -167,18 +170,18 @@ criterion_house_age = ContinuousCriterion(
 )
 criteria_objects.append(criterion_house_age)
 
-# 2.3.2 Последња реновациjа (discrete criterion)
+# 2.3.2 Последња реновациjа
 description_last_renovation = "Погодност дома у односу на последњу реновацију."
-values_last_renovation = [5, 10]
-suitabilities_last_renovation = [1.0, 0.7, 0.0]
-criterion_last_renovation = DiscreteCriterion(
+criterion_last_renovation = ContinuousCriterion(
     name="Последња реновациjа",
     description=description_last_renovation,
-    value_score_mapping=dict(zip(values_last_renovation, suitabilities_last_renovation))
+    points=[(5, 1.0), (7, 0.7), (10, 0.5), (15, 0.1)],
+    left=1.0,
+    right=0.0,
 )
 criteria_objects.append(criterion_last_renovation)
 
-# 2.3.3 Квалитет градње (qualitative criterion)
+# 2.3.3 Квалитет градње
 description_build_quality = "Квалитет градње: 'висок' - Висок квалитет, 'низак' - Низак квалитет градње."
 values_build_quality = ['висок', 'виши средњи', 'нижи средњи', 'низак']
 suitabilities_build_quality = [1.0, 0.7, 0.5, 0.3]
@@ -189,7 +192,7 @@ criterion_build_quality = QualitativeCriterion(
 )
 criteria_objects.append(criterion_build_quality)
 
-# 2.3.4 Енергетска ефикасност (qualitative criterion)
+# 2.3.4 Енергетска ефикасност
 description_energy_efficiency = "Енергетска ефикасност: 'A' - Висока, 'D или мање' - Ниска."
 values_energy_efficiency = ['A', 'B', 'C', 'D или мање']
 suitabilities_energy_efficiency = [1.0, 0.7, 0.3, 0.0]
@@ -200,18 +203,31 @@ criterion_energy_efficiency = QualitativeCriterion(
 )
 criteria_objects.append(criterion_energy_efficiency)
 
-# 3.1.1.1 Приватна гаража (discrete criterion)
+# 3.1.1.1 Приватна гаража
 description_private_garage = "Погодност дома у односу на присуство приватне гараже."
 values_private_garage = [2, 1, 0]
 suitabilities_private_garage = [1.0, 0.5, 0.0]
 criterion_private_garage = DiscreteCriterion(
     name="Приватна гаража",
     description=description_private_garage,
-    value_score_mapping=dict(zip(values_private_garage, suitabilities_private_garage))
+    value_score_mapping=dict(zip(values_private_garage, suitabilities_private_garage)),
+    right=1.0,
 )
 criteria_objects.append(criterion_private_garage)
 
-# 3.1.2 Jавни паркинг (discrete criterion)
+# 3.1.1.2 Дељена гаража
+description_shared_garage = "Присутност дељене гараже са више паркинг места."
+values_shared_garage = [2, 1, 0]
+suitabilities_shared_garage = [1.0, 0.5, 0.0]
+criterion_shared_garage = DiscreteCriterion(
+    name="Дељена гаража",
+    description=description_shared_garage,
+    value_score_mapping=dict(zip(values_shared_garage, suitabilities_shared_garage)),
+    right=1.0,
+)
+criteria_objects.append(criterion_shared_garage)
+
+# 3.1.2 Jавни паркинг
 description_public_parking = "Тип јавног паркинга."
 values_public_parking = [3, 2, 1, 0]
 suitabilities_public_parking = [1.0, 0.7, 0.5, 0.0]
@@ -222,7 +238,7 @@ criterion_public_parking = DiscreteCriterion(
 )
 criteria_objects.append(criterion_public_parking)
 
-# 3.2 Површина дворишта (continuous criterion)
+# 3.2 Површина дворишта
 description_yard_area = "Погодност дома у односу на површину дворишта."
 points_yard_area = [(100, 1.0), (80, 0.85), (50, 0.5), (0, 0.0)]
 criterion_yard_area = ContinuousCriterion(
@@ -232,7 +248,7 @@ criterion_yard_area = ContinuousCriterion(
 )
 criteria_objects.append(criterion_yard_area)
 
-# 3.3 Башта или тераса (discrete criterion)
+# 3.3 Башта или тераса
 description_garden_terrace = "Башта или тераса."
 values_garden_terrace = [3, 2, 1, 0]
 suitabilities_garden_terrace = [1.0, 0.6, 0.5, 0.0]
@@ -243,11 +259,171 @@ criterion_garden_terrace = DiscreteCriterion(
 )
 criteria_objects.append(criterion_garden_terrace)
 
+description_orientation_sun = "Оријентација према сунцу (јужна, западна/источна, северна оријентација)."
+values_orientation_sun = [3, 2, 1]
+suitabilities_orientation_sun = [1.0, 0.7, 0.5]
+criterion_orientation_sun = DiscreteCriterion(
+    name="Оријентација према сунцу",
+    description=description_orientation_sun,
+    value_score_mapping=dict(zip(values_orientation_sun, suitabilities_orientation_sun))
+)
+criteria_objects.append(criterion_orientation_sun)
+
+description_internet_connection = "Тип интернет конекције."
+values_internet_connection = [5, 4, 3, 2, 1]
+suitabilities_internet_connection = [1.0, 0.8, 0.6, 0.4, 0.1]
+criterion_internet_connection = DiscreteCriterion(
+    name="Тип интернет конекције",
+    description=description_internet_connection,
+    value_score_mapping=dict(zip(values_internet_connection, suitabilities_internet_connection))
+)
+criteria_objects.append(criterion_internet_connection)
+
+description_neighborhood_safety = "Оцена уређености и безбедности комшилука."
+values_neighborhood_safety = ['одлична', 'врло добра', 'добра', 'прихватљива', 'лоша', 'неприхватљива']
+suitabilities_neighborhood_safety = [1.0, 0.7, 0.6, 0.4, 0.1, 0.0]
+criterion_neighborhood_safety = QualitativeCriterion(
+    name="Околина и безбедност",
+    description=description_neighborhood_safety,
+    value_score_mapping=dict(zip(values_neighborhood_safety, suitabilities_neighborhood_safety))
+)
+criteria_objects.append(criterion_neighborhood_safety)
+
+# Креирање коренског чвора (Погодност дома)
+root = AggregationTreeNode(node_id="1", name="Погодност некретнине", element=LowSoftPartialConjunction())
+
+# Додавање деце корену
+quality_of_location = root.add_child(LowHardPartialConjunction(), weight=0.3, name="Квалитет локације")
+
+# 1. Квалитет локациjе
+# Агрегатор: Слаба тврда парциjална конjункциjа.
+# Тежине за децу "Квалитет локациjе":
+weight_work_proximity = 0.35
+weight_school_distance = 0.35
+weight_additional_location_amenities = 0.3
+
+# Близина радном месту:
+work_proximity = quality_of_location.add_child(FullConjunction(), weight=weight_work_proximity,
+                                               name="Близина радном месту")
+work_proximity.add_child(criterion_father_work, weight=0.5)
+work_proximity.add_child(criterion_mother_work, weight=0.5)
+
+# Просечна удаљеност од школа:
+school_distance = quality_of_location.add_child(criterion_school_distance, weight=weight_school_distance)
+
+# Додатне погодности локациjе:
+additional_location_amenities = quality_of_location.add_child(LowSoftPartialDisjunction(),
+                                                              weight=weight_additional_location_amenities,
+                                                              name="Додатне погодности локациjе")
+additional_location_amenities.add_child(criterion_public_transport, weight=0.2)
+additional_location_amenities.add_child(criterion_shopping_access, weight=0.3)
+additional_location_amenities.add_child(criterion_child_facilities, weight=0.2)
+additional_location_amenities.add_child(criterion_health_access, weight=0.3)
+
+# 2. Унутрашњи квалитет jединице
+# Тежине за децу "Квалитет дома":
+weight_square_footage = 0.45
+weight_room_quality = 0.35
+weight_room_layout = 0.2
+
+# Квадратура унутрашњег простора:
+quality_of_inner_home = root.add_child(HighSoftPartialConjunction(), weight=0.3, name="Унутрашњи квалитет јединице")
+inner_area = quality_of_inner_home.add_child(criterion_square_footage, weight=weight_square_footage)
+
+# Квалитет и броj соба:
+quality_of_rooms = quality_of_inner_home.add_child(LowHardPartialDisjunction(), weight=weight_room_quality,
+                                                   name="Квалитет и броj соба")
+quality_of_rooms.add_child(criterion_bedrooms, weight=0.3)
+quality_of_rooms.add_child(criterion_bathrooms, weight=0.1)
+quality_of_rooms.add_child(criterion_kitchen, weight=0.2)
+quality_of_rooms.add_child(criterion_dining_room, weight=0.15)
+quality_of_rooms.add_child(criterion_living_room, weight=0.25)
+
+# Распоред соба:
+room_layout = quality_of_inner_home.add_child(criterion_room_layout, weight=weight_room_layout)
+
+# 3. Стање и одржавање
+# Тежине за децу "Стање и одржавање":
+weight_age_of_unit = 0.25
+weight_last_renovation = 0.25
+weight_building_quality = 0.25
+weight_energy_efficiency = 0.25
+
+state_of_maintenance = root.add_child(HighSoftPartialConjunction(), weight=0.15, name="Стање и одржавање")
+state_of_maintenance.add_child(criterion_house_age, weight=weight_age_of_unit)
+state_of_maintenance.add_child(criterion_last_renovation, weight=weight_last_renovation)
+state_of_maintenance.add_child(criterion_build_quality, weight=weight_building_quality)
+state_of_maintenance.add_child(criterion_energy_efficiency, weight=weight_energy_efficiency)
+
+# 4. Екстерни квалитет jединице
+# Тежине за децу "Екстерни квалитет jединице":
+weight_parking = 0.5
+weight_garden_area = 0.2
+weight_terrace_or_garden = 0.3
+
+external_quality = root.add_child(MediumSoftPartialDisjunction(), weight=0.15, name="Екстерни квалитет jединице")
+
+# Паркинг
+max_reward_parking = 0.2
+max_penalty_parking = 0.4
+
+parking = external_quality.add_child(ConjunctivePartialAbsorption(max_reward_parking, max_penalty_parking),
+                                     weight=weight_parking, name="Паркинг")
+
+max_reward_private_parking = 0.3
+max_penalty_private_parking = 0.15
+private_parking = parking.add_child(
+    DisjunctivePartialAbsorption(max_reward_private_parking, max_penalty_private_parking), name="Приватни паркинг",
+    weight=max_reward_parking)
+private_parking.add_child(criterion_private_garage, weight=max_reward_private_parking)
+private_parking.add_child(criterion_shared_garage, weight=max_penalty_private_parking)
+
+parking.add_child(criterion_public_parking, weight=max_penalty_parking)
+
+external_quality.add_child(criterion_yard_area, weight=weight_garden_area)
+
+# Башта или тераса:
+external_quality.add_child(criterion_garden_terrace, weight=weight_terrace_or_garden)
+
+# 5. Остали фактори
+# Тежине за децу "Остали фактори":
+weight_sun_orientation = 0.3
+weight_internet_connection = 0.3
+weight_neighborhood_safety = 0.4
+
+other_factors = root.add_child(MediumSoftPartialConjunction(), weight=0.1, name="Остали фактори")
+other_factors.add_child(criterion_orientation_sun, weight=weight_sun_orientation)
+other_factors.add_child(criterion_internet_connection, weight=weight_internet_connection)
+other_factors.add_child(criterion_neighborhood_safety, weight=weight_neighborhood_safety)
+
+
+def load_inputs_from_csv(file_path):
+    df = pd.read_csv(file_path)
+
+    prices = df['Цена'].tolist()
+
+    df = df.drop(columns=['Цена'])
+
+    inputs = df.to_dict(orient='records')
+
+    return inputs, prices
 
 
 if __name__ == "__main__":
-    for criterion in criteria_objects:
-        criterion.display_info()
-        criterion.plot_elementary_criterion()
+    # for criterion in criteria_objects:
+    #     criterion.display_info()
+    #     criterion.plot_elementary_criterion()
 
-    print(len(criteria_objects))
+    # print(len(criteria_objects))
+    # print_tree(root)
+    # tree_plotter = TreePlotter()
+    # tree_plotter.display_tree(root, output_file="tree.png")
+
+    inputs, prices = load_inputs_from_csv('inputs.csv')
+    results = AggregationTreeNode.evaluate_aggregation_tree(root, inputs)
+    values = []
+    for result, price in zip(results, prices):
+        values.append(result * 100.0 / price)
+    
+
+    print("Evaluation result:", results)

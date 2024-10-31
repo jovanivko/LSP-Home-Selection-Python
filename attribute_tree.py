@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
-
-from aggregators import Aggregator, HighHardPartialDisjunction, ConjunctivePartialAbsorption
-from criteria import ElementaryCriterion, QualitativeCriterion, DiscreteCriterion, ContinuousCriterion
+from aggregators import Aggregator
+from criteria import ElementaryCriterion
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
+
 
 class AggregationTreeNode:
 
@@ -15,8 +15,14 @@ class AggregationTreeNode:
         self.children = []
         self.weights = []
 
-    def add_child(self, element, weight, name):
-        assert not isinstance(self, ElementaryCriterion)
+    @staticmethod
+    def evaluate_aggregation_tree(root, inputs):
+        scores = []
+        for input_data in inputs:
+            scores.append(float(root.evaluate(input_data)))
+        return scores
+
+    def add_child(self, element, weight=0, name=""):
         if isinstance(element, ElementaryCriterion):
             element.id = self.node_id + f" {len(self.children)+1}"
             node = AggregationTreeNode(element.id, element.name, element)
@@ -30,9 +36,9 @@ class AggregationTreeNode:
         if isinstance(node.element, Aggregator):
             return node
 
-    def evaluate(self, inputs):
+    def evaluate(self, input_data):
         if isinstance(self.element, ElementaryCriterion):
-            value = inputs[self.element.name].values[0]  # Get the value for this criterion from the DataFrame
+            value = input_data[self.element.name] # Get the value for this criterion from the DataFrame
             if pd.isna(value):  # Check for NaN (missing value)
                 return None
             return self.element.evaluate(value)
@@ -42,7 +48,7 @@ class AggregationTreeNode:
             updated_weights = []
 
             for child, weight in zip(self.children, self.weights):
-                child_value = child.evaluate(inputs)
+                child_value = child.evaluate(input_data)
                 if child_value is None:
                     # Calculate missingness tolerance
                     calculated_tolerance = 1 - 2 * weight
@@ -82,58 +88,125 @@ class AggregationTreeNode:
                 normalized_weights = [w / weight_sum for w in updated_weights]
             else:
                 normalized_weights = updated_weights
-            # print(f"Normalized weights: {updated_weights}")
-            # print(f"Weight sum before normalization: {weight_sum}")
-            #
-            # # If sum of updated weights is not 1, normalize them
-            # if not np.isclose(weight_sum, 1):
-            #     normalized_weights = [w / weight_sum for w in updated_weights]
-            #     print(f"Weight sum after normalization: {sum(normalized_weights)}")
-            # else:
-            #     normalized_weights = updated_weights
-
             return self.element.evaluate(child_values, normalized_weights)
 
 class TreePlotter:
     """
-    Class responsible for plotting the tree diagram.
+    Class for plotting a tree diagram with consistent node widths, proper vertical distribution,
+    and parent-child connections drawn correctly.
     """
-    def __init__(self):
-        self.fig, self.ax = plt.subplots(figsize=(10, 6))
-        self.ax.set_axis_off()
 
-    def plot_node(self, node, x, y, width, height, parent_coords=None):
+    def __init__(self):
+        self.fig, self.ax = plt.subplots(figsize=(18, 18))  # Increased figure size for better readability
+        self.ax.set_axis_off()
+        plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+
+    def build_level_lists(self, node, level=0, levels=None):
         """
-        Recursively plot each node and its children in the tree.
+        Traverse the tree and build a list of nodes for each level.
+        """
+        if levels is None:
+            levels = {}
+
+        if level not in levels:
+            levels[level] = []
+
+        # Append node to its level
+        levels[level].append(node)
+
+        # Recursively process the children
+        for child in node.children:
+            self.build_level_lists(child, level + 1, levels)
+
+        return levels
+
+    def distribute_vertically(self, nodes, total_height):
+        """
+        Distribute the nodes vertically for a given level.
+        """
+        count = len(nodes)
+        spacing = total_height / count  # Even spacing for nodes at level
+        return [spacing * i for i in range(count)]  # Y-coordinates for each node
+
+    def plot_levels(self, levels, total_height):
+        """
+        Plot all nodes level by level and store their positions for later line connection.
+        """
+        node_positions = {}
+        width = 12.5
+        height = 3
+        x_spacing = width * 1.25
+
+        # Center the root node
+        root_y_centered = total_height / 2 - height / 2
+
+        # Iterate through each level and plot nodes
+        for level, nodes in levels.items():
+            y_positions = self.distribute_vertically(nodes, total_height)
+            if level == 0:  # Center the root node explicitly
+                y_positions = [root_y_centered]
+            node_positions[level] = []
+            for i, node in enumerate(nodes):
+                x = level * x_spacing
+                y = y_positions[i]
+                node_positions[level].append((x, y))  # Store node's position
+
+                # Plot the node
+                self.plot_node(node, x, y, width, height)
+
+        return node_positions
+
+    def plot_node(self, node, x, y, width, height):
+        """
+        Plot a single node and display the text inside it.
         """
         if isinstance(node.element, Aggregator):
-            txt = f"{node.name}\n(ID: {node.node_id}) {node.element.name}[{node.weights}]"
+            txt = f"{node.name}\n(ID: {node.node_id})\n{node.element.name}[{node.weights}]"
         else:
             txt = f"{node.name}\n(ID: {node.node_id})"
-        # Draw the rectangle for the node
+
+
         rect = Rectangle((x, y), width, height, edgecolor='black', facecolor='lightgray', lw=2)
         self.ax.add_patch(rect)
-        self.ax.text(x + width / 2, y + height / 2, txt,
-                     va='center', ha='center', fontsize=10)
+        self.ax.text(x + width / 2, y + height / 2, txt, va='center', ha='center',  fontsize=10, fontweight='bold', wrap=True)
 
-        # Draw line from parent to current node
-        if parent_coords:
-            parent_x, parent_y = parent_coords
-            self.ax.plot([parent_x + width / 2, x + width / 2], [parent_y, y + height], color="black", lw=2)
-
-        # Plot children
-        if node.children:
-            child_width = width / len(node.children)  # Equal width for each child
-            for i, child in enumerate(node.children):
-                self.plot_node(child, x + i * child_width, y - height * 1.5, child_width, height, (x, y))
-
-    def display_tree(self, root_node):
+    def connect_nodes(self, node_positions, levels):
         """
-        Starts the plotting process for the given tree with root_node.
+        Draw lines connecting parent and child nodes based on their stored positions.
         """
-        # Start plotting from the root node
-        self.plot_node(root_node, x=0, y=0, width=6, height=1)
-        plt.show()
+        for level, nodes in levels.items():
+            if level == len(levels) - 1:  # Skip the last level (no children)
+                break
+            for i, node in enumerate(nodes):
+                # Get the position of the current node
+                parent_x, parent_y = node_positions[level][i]
+                # Get children positions by iterating over the children of the parent node
+                for child in node.children:
+                    child_index = levels[level + 1].index(child)  # Find the index of the child in the next level
+                    child_x, child_y = node_positions[level + 1][child_index]
+                    # Draw line from parent to child
+                    self.ax.plot([parent_x + 12.5, child_x], [parent_y + 1.5, child_y + 1.5], color="black", lw=2)
+
+    def display_tree(self, root_node, output_file="tree.png"):
+        """
+        Main function to plot the tree and save the output to a PNG file.
+        """
+        # Build the list of nodes for each level
+        levels = self.build_level_lists(root_node)
+
+        # Calculate the total height for the plot based on the number of nodes
+        max_level_count = max([len(nodes) for nodes in levels.values()])
+        total_height = max_level_count * 4  # Adjust based on the level with the most nodes
+
+        # Plot the nodes level by level and remember their positions
+        node_positions = self.plot_levels(levels, total_height)
+
+        # Connect the nodes using lines
+        self.connect_nodes(node_positions, levels)
+
+        # Save the figure as a high-resolution PNG file
+        plt.savefig(output_file, dpi=300)
+
 
 def print_tree(node, prefix=""):
     """
